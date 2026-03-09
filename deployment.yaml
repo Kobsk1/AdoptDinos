@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: web-container
-        image: le01-cruzrios-bcs22-mt-05:v1  
+        image: le01-cruzrios-bcs22-mt-05:v2  
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
