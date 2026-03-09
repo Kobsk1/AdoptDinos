@@ -65,6 +65,45 @@ const dinoData = {
   }
 };
 
+// ===== PRODUCT DATA =====
+const prodData = {
+  'dino-food-herb': {
+    name: 'FOOD - HERBIVORE',
+    type: 'Plants, Tree seed, and Fruits',
+    price: 'Php 5,000.00',
+    desc: 'Grass, leaves, and fruits to keep your herbivorous dino friends happy and healthy.',
+    img: 'Dino Images/Dino Food Herb.svg'
+  },
+  'dino-food-carn': {
+    name: 'FOOD - CARNIVORE',
+    type: 'Egg and Meat',
+    price: 'Php 3,000.00',
+    desc: 'High-protein diet for your carnivorous dino friends.',
+    img: 'Dino Images/Dino Food Carn.svg'
+  },
+  'dino-egg': {
+    name: 'DINO EGG',
+    type: '',
+    price: 'Php 10,500.00',
+    desc: 'Different Species.',
+    img: 'Dino Images/Dino Egg.svg'
+  },
+  'whistle': {
+    name: 'WHISTLE',
+    type: 'Aluminum',
+    price: 'Php 650.00',
+    desc: 'Used to control dinosaurs.',
+    img: 'Dino Images/Whistle.svg'
+  },
+  'collar': {
+    name: 'COLLAR',
+    type: 'Chains',
+    price: 'Php 775.00',
+    desc: 'A piece of material put around the neck.',
+    img: 'Dino Images/Collar.svg'
+  },
+};
+
 function getLocalImgPath(key) {
   // construct a filename based on the card key; e.g. "baby-dina" -> "Baby Dina.png"
   const filename = key
@@ -76,35 +115,64 @@ function getLocalImgPath(key) {
 }
 
 function openModal(key) {
+  const prod = prodData[key];
   const dino = dinoData[key];
-  if (!dino) return;
 
-  document.getElementById('modalName').textContent = dino.name;
-  document.getElementById('modalType').textContent = '🦕 ' + dino.type;
-  document.getElementById('modalAge').textContent = '🗓 Age ' + dino.age;
-  document.getElementById('modalSex').textContent = dino.sex === 'F' ? '♀ Female' : '♂ Male';
-  document.getElementById('modalDesc').textContent = dino.desc;
+  // neither found -> nothing to show
+  if (!prod && !dino) return;
 
   const imgWrap = document.getElementById('modalImgWrap');
   const img = document.getElementById('modalImg');
-  // prefer explicit path, otherwise try local file
-  const src = dino.img || getLocalImgPath(key);
-  if (src) {
-    img.src = src;
-    img.style.display = 'block';
-    imgWrap.classList.remove('no-img');
-  } else {
-    img.src = '';
-    img.style.display = 'none';
-    imgWrap.classList.add('no-img');
+
+  if (dino) {
+    document.getElementById('modalName').textContent = dino.name;
+    const typeEl = document.getElementById('modalType'); if (typeEl) typeEl.textContent = '🦕 ' + dino.type;
+    const ageEl = document.getElementById('modalAge'); if (ageEl) ageEl.textContent = '🗓 Age ' + dino.age;
+    const sexEl = document.getElementById('modalSex'); if (sexEl) sexEl.textContent = dino.sex === 'F' ? '♀ Female' : '♂ Male';
+    const descEl = document.getElementById('modalDesc'); if (descEl) descEl.textContent = dino.desc;
+
+    const src = dino.img || getLocalImgPath(key);
+    if (img && src) {
+      img.src = src;
+      img.style.display = 'block';
+      if (imgWrap) imgWrap.classList.remove('no-img');
+    } else if (img) {
+      img.src = '';
+      img.style.display = 'none';
+      if (imgWrap) imgWrap.classList.add('no-img');
+    }
+
+    const modalEl = document.getElementById('dinoModal');
+    if (modalEl) modalEl.classList.add('active');
   }
 
-  document.getElementById('dinoModal').classList.add('active');
+  if (prod) {
+    document.getElementById('modalName').textContent = prod.name ? 'Product: ' + prod.name : '';
+    const typeEl = document.getElementById('modalType'); if (typeEl) typeEl.textContent = prod.type ? 'Type: ' + prod.type : '';
+    const priceEl = document.getElementById('modalPrice'); if (priceEl) priceEl.textContent = prod.price ? 'Price: ' + prod.price : '';
+    const descEl = document.getElementById('modalDesc'); if (descEl) descEl.textContent = prod.desc;
+
+    const src = prod.img || getLocalImgPath(key);
+    if (img && src) {
+      img.src = src;
+      img.style.display = 'block';
+      if (imgWrap) imgWrap.classList.remove('no-img');
+    } else if (img) {
+      img.src = '';
+      img.style.display = 'none';
+      if (imgWrap) imgWrap.classList.add('no-img');
+    }
+
+    const modalEl = document.getElementById('prodModal');
+    if (modalEl) modalEl.classList.add('active');
+  }
+
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-  document.getElementById('dinoModal').classList.remove('active');
+  const dinoEl = document.getElementById('dinoModal'); if (dinoEl) dinoEl.classList.remove('active');
+  const prodEl = document.getElementById('prodModal'); if (prodEl) prodEl.classList.remove('active');
   document.body.style.overflow = '';
 }
 
@@ -130,14 +198,36 @@ function populateCards() {
     });
     imgWrap.appendChild(imgEl);
   });
+
+  // populate product thumbnails similarly
+  document.querySelectorAll('.prod-card').forEach(card => {
+    const key = card.dataset.key || (card.getAttribute('onclick')?.match(/openModal\('(.+)'\)/)?.[1]);
+    if (!key) return;
+    const prod = prodData[key];
+    if (!prod) return;
+    const imgWrap = card.querySelector('.card-img-wrap');
+    let src = prod.img || getLocalImgPath(key);
+    if (!src) {
+      imgWrap.classList.add('no-img');
+      return;
+    }
+    const imgEl = document.createElement('img');
+    imgEl.src = src;
+    imgEl.alt = prod.name;
+    imgEl.addEventListener('error', () => {
+      imgWrap.classList.add('no-img');
+      imgEl.remove();
+    });
+    imgWrap.appendChild(imgEl);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   populateCards();
-  const overlay = document.getElementById('dinoModal');
-  if (overlay) {
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-  }
+  const dinoOverlay = document.getElementById('dinoModal');
+  if (dinoOverlay) dinoOverlay.addEventListener('click', (e) => { if (e.target === dinoOverlay) closeModal(); });
+  const prodOverlay = document.getElementById('prodModal');
+  if (prodOverlay) prodOverlay.addEventListener('click', (e) => { if (e.target === prodOverlay) closeModal(); });
 });
 
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
